@@ -5,4 +5,5 @@ dash-table
 pandas
 numpy
 plotly
-gunicornmatplotlib
+gunicorn
+matplotlib
