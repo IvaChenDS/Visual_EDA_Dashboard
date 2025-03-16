@@ -90,6 +90,7 @@ year_options = [{'label': year, 'value': year} for year in df["Year"].unique()]
 
 
 app = dash.Dash(__name__)
+server = app.server  # Required for Gunicorn in production
 app.layout = html.Div([
     html.H1("Disease Death Rate Dashboard", style={'textAlign': 'center'}),
     # Dropdown for Time-Series Graph
