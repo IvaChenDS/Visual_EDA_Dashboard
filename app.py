@@ -1,101 +1,31 @@
-#!/usr/bin/env python
-
-# # Interactive Dashboard #
-# ### Covid-19 Death Count Analysis ###
-# *Dataset Overview*
-# ![Screenshot 2025-03-14 at 3.33.58 PM.png](attachment:4508d0ca-ad66-404a-b090-0116067f3537.png)
-
-
-
-## Install packages if you have not used 
-## Uncomment the following based on your need
-#! pip install dash plotly 
-
-
-# Import Necessary Libraries
-
-
-
-import dash
-from dash import dcc, html
-import dash.dependencies as dd
-import plotly.express as px
-import pandas as pd
-import numpy as np
-import plotly.graph_objects as go # use for subplots
-from plotly.subplots import make_subplots
-#import seaborn as sns
-import matplotlib.pyplot as plt
-import dash.dash_table as dt
-
-
-
-# Load and Preprocess the Data
-# The dataset contains death counts categorized by disease, state, and time.
-
-
-
-df = pd.read_csv('COVID-19_Death_Counts.csv')
-
-
-
-
-df.columns
-
-
-
-
-# Convert "End Date" to datetime
-df["End Date"] = pd.to_datetime(df["End Date"])
-df["Month"]= df["End Date"].dt.month
-df["Year"]=df["End Date"].dt.year
-df["Week"] = df["End Date"].dt.to_period("W")
-
-
-
-
-### Log transformation of death count
-for var in ['COVID-19 Deaths', 'Pneumonia Deaths', 'Influenza Deaths', 'Total Deaths']:
-    df.loc[df[var] > 0, var + '_log'] = np.log(df[var])
-    #print (df[var+'_log'])
-df.columns
-
-
-# Create Dropdown Options
-
-
-
 # Define drowpdown options for disease
 disease_options = {
     "COVID-19 Deaths": "COVID-19 Deaths",
     "Pneumonia Deaths": "Pneumonia Deaths",
     "Influenza Deaths": "Influenza Deaths",
-    "Total Deaths": "Total Deaths"
+    "Total Deaths": "Total Deaths",
+    'COVID-19 Deaths_log': "COVID-19 Deaths_log", 
+    'Pneumonia Deaths_log':"Pneumonia Deaths_log", 
+    'Influenza Deaths_log': "Influenza Deaths_log",
+    'Total Deaths_log': "Total Deaths_log"
 }
-disease_log= ['COVID-19 Deaths_log', 'Pneumonia Deaths_log', 'Influenza Deaths_log','Total Deaths_log']  
+
+
 # Define dropdown options for states
 state_options = [{'label': state, 'value': state} for state in df["State"].unique()]
 
 # Define dropdown options for week
-
 week_options = [{'label': week, 'value': week} for week in df["End Date"].unique()]
 
 # Define dropdown options for year
-
 year_options = [{'label': year, 'value': year} for year in df["Year"].unique()]
 
-
-# Build the Dashboard Layout
-
-
-
 app = dash.Dash(__name__)
-server = app.server  # Required for Gunicorn in production
 app.layout = html.Div([
     html.H1("Disease Death Rate Dashboard", style={'textAlign': 'center'}),
     # Dropdown for Time-Series Graph
     html.Div([
-        html.H3("Time-Series Graph Controls"),
+        html.H3("Time-Series Graph"),
         html.Label("Select Disease:"),
         dcc.Dropdown(id='time-disease-dropdown', options=disease_options, value="COVID-19 Deaths", clearable=False),
 
@@ -107,24 +37,23 @@ app.layout = html.Div([
         dcc.Graph(id='time-series-chart')
     ], style={'border': '1px solid black', 'padding': '10px', 'margin': '10px'}),
 
-    # Dropdown and Slider for Box_Voin Graph
+    # Dropdown and Slider for Box_Violin Graph
     html.Div([
-        html.H3("Box_Violin Graph Controls"),
+        html.H3("Box_Violin Plot"),
         html.Label("Select Disease:"),
         dcc.Dropdown(id='box-disease-dropdown', options=disease_options, value="Total Deaths", clearable=False),
 
         html.Label("Select State:"),
-        dcc.Dropdown(id='box-state-dropdown', options=state_options, value="Alabama", clearable=False),
+        dcc.Dropdown(id='box-state-dropdown', options=state_options, value="United States", clearable=False),
 
         html.Label("Filter Death Range:"),
         dcc.RangeSlider(
-            id='box-death-slider',
-            min=df["COVID-19 Deaths"].min(), 
-            max=df["COVID-19 Deaths"].max(), 
-            step=max(1, (df["COVID-19 Deaths"].max() - df["COVID-19 Deaths"].min()) // 10), 
-            marks={i: str(i) for i in range(int(df["COVID-19 Deaths"].min()), int(df["COVID-19 Deaths"].max()), 
-                                                  max(500, (int(df["COVID-19 Deaths"].max()) - int(df["COVID-19 Deaths"].min())) // 10))},
-            value=[df["COVID-19 Deaths"].min(), df["COVID-19 Deaths"].max()]  
+                        id='box-death-slider',
+                        min=0,     
+                        max=df["COVID-19 Deaths"].max(),
+                        step=50000,  
+                        marks={i: f"{i//1000}k" for i in range(0, int(df["COVID-19 Deaths"].max()) + 1, 50000)},  
+                        value=[0, df["COVID-19 Deaths"].max()]  # Default range from 0 to max
         ),
 
         html.Button("Update Graph", id="update-button2", n_clicks=0),
@@ -136,7 +65,7 @@ app.layout = html.Div([
 
     # Dropdown for Scatterplot matrix
     html.Div([
-        html.H3("Scatterplot matrix Controls"),
+        html.H3("Scatterplot matrix"),
         html.Label("Select Year:"),
         dcc.Dropdown(id='scatter-year-dropdown', options=year_options, value="2020", clearable=False),
 
@@ -151,7 +80,7 @@ app.layout = html.Div([
 
     # Dropdown for heatmap
     html.Div([
-        html.H3("Heatmap Controls"),
+        html.H3("Heatmap"),
         html.Label("Select Disease:"),
         dcc.Dropdown(id='heatmap-disease-dropdown', options=disease_options, value="COVID-19 Deaths", clearable=False),
         
@@ -164,29 +93,7 @@ app.layout = html.Div([
     # Navigation Links
     dcc.Link("View Graphs in New Tab", href="/Disease Death RateDashboard", target="_blank"),
 
-
-    # Page Content
-    #dash.page_container
 ])
-
-
-
-
-
-
-# # Use Plotly Express to create line charts #
-# 
-# fig = px.line(data_frame, x="X_column", y="Y_column", color="Category")
-# 
-# 
-# Parameter	Description
-# data_frame	The Pandas DataFrame containing the data.
-# x	        The column to use for the x-axis (e.g., time or date).
-# y	        The column to use for the y-axis (e.g., death rates).
-# color	    (Optional) Categorizes lines based on another column.
-# title	    (Optional) Sets the chart title.
-
-
 
 # Set up input parameters Time-Series Chart
 @app.callback(
@@ -232,24 +139,6 @@ def update_time_series(n_clicks, selected_disease, selected_state):
     time_fig.update_yaxes(range=[y_min, y_max])
 
     return time_fig
-
-
-# # Use Plotly Express to create box and violin plots #
-# 
-# fig1 = px.violin(data_frame, x=x, y=y, color=None, box=True, points="outliers")
-# 
-# Argument	Description
-# data_frame	The Pandas DataFrame containing the data.
-# x	        Categorical variable (e.g., "State", "Disease").
-# y	        Numeric variable (e.g., "COVID-19 Deaths").
-# color	    Adds color grouping (same as x).
-# box	        If True, adds a boxplot inside the violin plot.
-# points	    Shows individual points: "all", "outliers", "none". 
-# 
-# 
-
-
-
 # Set up input parameters for box-violin plot
 @app.callback(
     dd.Output('box-violin-plot', 'figure'),
@@ -285,22 +174,6 @@ def box_violin(n_clicks, selected_disease, selected_state, death_range):
 
     return box_violin_fig
 
-
-# # Use Plotly Express to create a scatterplot matrix #
-# px.scatter_matrix(data_frame, dimensions, color=None, symbol=None, title=None)
-# 
-# Argument	Description
-# data_frame	The Pandas DataFrame containing the data.
-# dimensions	A list of numerical columns to be compared in the scatterplot matrix.
-# color	    (Optional) Column name for grouping data by color.
-# symbol	    (Optional) Column name for different point markers.
-# size	    (Optional) Column name to set the size of scatterplot markers.
-# title	    (Optional) Title of the scatterplot matrix.
-# 
-# 
-
-
-
 # Set up Input parameters for scatter-matrix
 @app.callback(
     [dd.Output('scatter-matrix', 'figure')],
@@ -319,36 +192,18 @@ def scatter(n_clicks, selected_states, selected_years):
     if len(filtered_df) <=5:
         return px.scatter_matrix(title="No enough data available")
 
-
+    diseases_log =['COVID-19 Deaths_log', 'Pneumonia Deaths_log', 'Influenza Deaths_log',
+       'Total Deaths_log']
     
-    scatter_fig = px.scatter_matrix(filtered_df, dimensions=disease_log,
+    scatter_fig = px.scatter_matrix(filtered_df, dimensions=diseases_log,
                             opacity=0.7,
-                            labels={"value": "Deaths"})
-                            #log_x= True,
-                            #log_y= True )
+                            labels={"value": "Deaths"},
+                            title= f"Scatterplot Matrix of Log Transformation of Deaths Count in {selected_states} in Year {selected_years}")
+                            
 
-    scatter_fig.update_layout(height=1200)
+    scatter_fig.update_layout(height=800)
 
     return (scatter_fig,)
-
-
-# # Create Heatmap #
-# Aggregate data to see sum of death per year for a given disease
-# Use px.imshow 
-# 
-# px.imshow(img, labels=None, x=None, y=None, color_continuous_scale=None, title=None)
-# 
-# Argument	Description
-# img	        Required → A 2D array (list, NumPy array, or Pandas DataFrame) representing the heatmap values.
-# x	        Labels for the x-axis (e.g., column names for heatmaps).
-# y	        Labels for the y-axis (e.g., row names for heatmaps).
-# labels	    Dictionary for axis labels (labels={"color": "Deaths"}).
-# color_continuous_scale	Color scheme for heatmap ("Reds", "Viridis", "Blues", etc.).
-# title	                Sets the heatmap title.
-# zmin, zmax	            Min/max values for color scale.
-# origin	                Determines the heatmap orientation ("upper" or "lower").
-
-
 
 # Set up Input parameters for heatmap
 @app.callback(
@@ -371,38 +226,9 @@ def heatmap(n_clicks, selected_disease):
                             title=f"Heatmap of {selected_disease} by Year")
 
 
-    heatmap_fig.update_layout(height=1200)
+    heatmap_fig.update_layout(height=800)
 
     return heatmap_fig
 
-
-# # Running the App #
-
-
-
 if __name__ == '__main__':
     app.run(debug=True, port=8052, use_reloader=False)
-
-
-# In[ ]:
-
-
-
-
-
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
