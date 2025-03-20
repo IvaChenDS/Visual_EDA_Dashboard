@@ -1,3 +1,26 @@
+df = pd.read_csv('COVID-19_Death_Counts.csv')
+# Convert "End Date" to datetime
+df["End Date"] = pd.to_datetime(df["End Date"])
+df["Month"]= df["End Date"].dt.month
+df["Year"]=df["End Date"].dt.year
+df["Week"] = df["End Date"].dt.to_period("W")
+### Clean Year ####
+### Transform 2020/2021 io 2021; 2021/2022 to 2022
+year_mapping = {
+    '2019/2020': '2020',
+    '2020/2021': '2021',
+    '2021/2022': '2022'
+}
+df['Year'] = df['Year'].replace(year_mapping)
+
+for var in ['COVID-19 Deaths', 'Pneumonia Deaths', 'Influenza Deaths', 'Total Deaths']:
+    df[var + '_log'] = np.log(df[var].where(df[var] > 0, 1))  # Replace 0 with 1 for log calculation
+
+
+
+
+
+
 # Define drowpdown options for disease
 disease_options = {
     "COVID-19 Deaths": "COVID-19 Deaths",
