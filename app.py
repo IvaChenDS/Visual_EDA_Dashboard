@@ -1,3 +1,16 @@
+import numpy as np  # Numerical operations and array handling
+import pandas as pd  # Data manipulation and analysis
+
+# Dash framework for building web applications
+import dash  # Core Dash functionalities
+from dash import dcc, html  # Directly use Dash Core Components (dcc) and HTML components (html)
+import dash.dependencies as dd  # Handle app callbacks using Input, Output, and State
+
+
+# Plotly for visualization
+import plotly.express as px  # Simplified data visualization
+
+
 df = pd.read_csv('COVID-19_Death_Counts.csv')
 # Convert "End Date" to datetime
 df["End Date"] = pd.to_datetime(df["End Date"])
