@@ -41,7 +41,7 @@ git clone <your-repo-url>
 cd <your-project-folder>
 ```
 
-Or download and extract the ZIP file manually.
+**Or download and extract the ZIP file manually.**
 ![Screenshot](https://github.com/user-attachments/assets/b7346465-0f44-4f7f-9947-5b068ce54cd8)
 
 
