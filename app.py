@@ -59,7 +59,7 @@ year_options = [{'label': year, 'value': year} for year in df["Year"].unique()]
 app = dash.Dash(__name__)
 server = app.server
 app.layout = html.Div([
-    html.H1("Disease Death Rate Dashboard", style={'textAlign': 'center'}),
+    html.H1("Disease Death Count Dashboard", style={'textAlign': 'center'}),
     # Dropdown for Time-Series Graph
     html.Div([
         html.H3("Time-Series Graph"),
