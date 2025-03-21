@@ -4,4 +4,4 @@ dash-html-components
 pandas
 numpy
 plotly
-
+gunicorn
