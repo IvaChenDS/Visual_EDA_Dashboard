@@ -39,9 +39,9 @@ Follow these steps to run the dashboard locally:
 ```bash
 git clone <your-repo-url>
 cd <your-project-folder>
+```
 
 Or download and extract the ZIP file manually.
-```
 
 ### 2. (Optional) Create a Virtual Environment
 ``` bash
