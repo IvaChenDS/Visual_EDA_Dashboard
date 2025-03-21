@@ -1,9 +1,7 @@
 dash
 dash-core-components
 dash-html-components
-dash-table
 pandas
 numpy
 plotly
-gunicorn
-matplotlib
+
