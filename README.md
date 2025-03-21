@@ -4,7 +4,9 @@ An interactive dashboard built using [Dash](https://dash.plotly.com/) to visuali
 
 ## Important Notes
 The dashboard requires COVID-19_Death_Counts.csv in the same directory as app.py.
+
 Default port is 8052. You can change it by modifying the app.run() line in app.py.
+
 All updates to the visualizations are triggered via buttons – no need to auto-refresh.
 
 ## Built With
@@ -34,15 +36,26 @@ NumPy
 
 Follow these steps to run the dashboard locally:
 
-### 1. Clone or Download the Repository
+### 1.1 Clone or Download the Repository if you use git
 
 ```bash
 git clone <your-repo-url>
 cd <your-project-folder>
 ```
 
-**Or download and extract the ZIP file manually.**
-![Screenshot](https://github.com/user-attachments/assets/b7346465-0f44-4f7f-9947-5b068ce54cd8)
+### 1.2 Or download and extract the ZIP file manually.**
+
+If you prefer not to use Git, follow these steps to download the files manually:
+<img width="989" alt="Screenshot 2025-03-21 at 6 06 54 PM" src="https://github.com/user-attachments/assets/3ad523c4-679f-4290-9bef-4f79a672a30e" />
+
+Click the "Code" button at the top of the repository.
+
+Select "Download ZIP".
+
+Once downloaded, locate the ZIP file on your computer.
+
+Extract the ZIP 
+Open the extracted folder and proceed with the setup instructions.
 
 
 
@@ -68,10 +81,10 @@ pip install -r requirements.txt
 python app.py
 ```
 If successful, the terminal will show something like:
-Running on http://127.0.0.1:8052/
+**Dash Running on http://127.0.0.1:8052/**
 
 ### 5. Open the Dashboard
-Go to your browser and open:
+Go to your browser and copy and post the link after Dash Running on:
 
 http://127.0.0.1:8052/
 
