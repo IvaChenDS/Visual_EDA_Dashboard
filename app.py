@@ -109,7 +109,22 @@ app.layout = html.Div([
         
         dcc.Graph(id= 'heatmap')
     ],  style={'border': '1px solid black', 'padding': '10px', 'margin': '10px'}),
+
+
+    # Dropdown for Choropleth Death Rate Map
+    html.Div([
+        html.H3("U.S. Death Rate Map"),
+        html.Label("Select Year:"),
+        dcc.Dropdown(
+            id="choropleth-year-dropdown", options=[{'label': year, 'value': year} for year in sorted(df_death_rate_by_state["Year"].unique())],
+            value=2020, clearable=False
+        ),
+        html.Button("Update Map", id="update-map-button", n_clicks=0),
+        dcc.Graph(id="choropleth-map")
+    ], style={'border': '1px solid black', 'padding': '10px', 'margin': '10px'}),
   
+
+
 
     # Navigation Links
     dcc.Link("View Graphs in New Tab", href="/Disease Death RateDashboard", target="_blank")
@@ -215,7 +230,7 @@ def scatter(n_clicks, selected_states, selected_years):
     scatter_fig = px.scatter_matrix(filtered_df, dimensions=diseases,
                             opacity=0.7,
                             labels={"value": "Deaths"},
-                            title= f"Scatterplot Matrix of Log Transformation of Deaths Count in {selected_states} in Year {selected_years}")
+                            title= f"Scatterplot Matrix of Deaths Count in {selected_states} in Year {selected_years}")
                             
 
     scatter_fig.update_layout(height=800)
@@ -247,6 +262,55 @@ def heatmap(n_clicks, selected_disease):
     heatmap_fig.update_layout(height=800)
 
     return heatmap_fig
+
+
+# Set up Input parameters for heatmap
+@app.callback(
+    dd.Output("choropleth-map", "figure"),
+    [dd.Input("update-map-button", "n_clicks")],
+    [dd.State("choropleth-year-dropdown", "value")]
+)
+
+
+def update_choropleth(n_clicks, selected_year):
+    if n_clicks == 0:
+        return dash.no_update
+
+    filtered_df = df_death_rate_by_state[df_death_rate_by_state["Year"] == selected_year]
+
+    ## Plotly requires 2-letter postal abbreviations  
+    us_state_abbrev = {
+    'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
+    'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA',
+    'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA',
+    'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
+    'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO',
+    'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ',
+    'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND',
+    'Ohio': 'OH', 'Oklahoma': 'OK', 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI',
+    'South Carolina': 'SC', 'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT',
+    'Vermont': 'VT', 'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV',
+    'Wisconsin': 'WI', 'Wyoming': 'WY'
+}
+
+    # Then apply mapping before plotting
+    filtered_df["State Code"] = filtered_df["State"].map(us_state_abbrev)
+
+    map = px.choropleth(
+        filtered_df,
+        locations="State Code",
+        locationmode="USA-states",
+        scope="usa",
+        color="Death Rate",
+        color_continuous_scale="Reds",
+        hover_name="State",
+        hover_data={"Death Rate": ':.2%', "Population": True, "Total Deaths": True},
+        title=f"Total Death Rate by State in {selected_year}"
+    )
+    map.update_geos(fitbounds="locations", visible=False)
+    map.update_layout(height=600)
+
+    return map
 
 if __name__ == '__main__':
     app.run(debug=True, port=8052, use_reloader=False)
