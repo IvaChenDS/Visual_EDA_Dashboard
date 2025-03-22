@@ -29,6 +29,50 @@ year_mapping = {
 }
 df['Year'] = df['Year'].replace(year_mapping)
 
+df_population= pd.read_csv('NST-EST2024-POP.csv')
+# Clean and format the population DataFrame
+
+df_population = df_population.rename(columns={df_population.columns[0]: "State"})
+
+for year in range(2020, 2025):
+    col = f"Population {year}"
+    df_population[col] = df_population[col].astype(str).str.replace(",", "")
+    df_population[col] = pd.to_numeric(df_population[col], errors="coerce")
+
+
+
+# Remove leading dots from state names
+df_population["State"] = df_population["State"].str.replace(r"^\.", "", regex=True).str.strip()
+
+# Convert population columns to numeric
+for year in range(2020, 2025):
+    df_population[f"Population {year}"] = pd.to_numeric(df_population[f"Population {year}"], errors="coerce")
+
+
+df_deaths_by_year = df.groupby(["State", "Year"])["Total Deaths"].sum().reset_index()
+
+
+# Reshape population data to long format for merging
+df_population_long = df_population.melt(
+    id_vars=["State"],
+    value_vars=[f"Population {year}" for year in range(2020, 2025)],
+    var_name="Year",
+    value_name="Population"
+)
+df_population_long["Year"] = df_population_long["Year"].str.extract(r"(\d{4})").astype(int)
+
+# Merge the datasets
+df_death_rate_by_state = pd.merge(
+    df_deaths_by_year,
+    df_population_long,
+    on=["State", "Year"],
+    how="inner"
+)
+
+df_death_rate_by_state["Death Rate"] = df_death_rate_by_state["Total Deaths"] / df_death_rate_by_state["Population"]
+
+
+
 
 
 # Define drowpdown options for disease
