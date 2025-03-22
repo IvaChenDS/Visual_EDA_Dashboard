@@ -10,10 +10,13 @@ import dash.dependencies as dd  # Handle app callbacks using Input, Output, and 
 # Plotly for visualization
 import plotly.express as px  # Simplified data visualization
 
+raw = pd.read_csv('COVID-19_Death_Counts.csv')
+## Only Include Week Data
+df = raw[raw["Group"] == "By Week"].copy()
 
-df = pd.read_csv('COVID-19_Death_Counts.csv')
+
 # Convert "End Date" to datetime
-df["End Date"] = pd.to_datetime(df["End Date"])
+df["End Date"] = pd.to_datetime(df["End Date"], format="%m/%d/%y")
 df["Month"]= df["End Date"].dt.month
 df["Year"]=df["End Date"].dt.year
 df["Week"] = df["End Date"].dt.to_period("W")
@@ -26,26 +29,16 @@ year_mapping = {
 }
 df['Year'] = df['Year'].replace(year_mapping)
 
-for var in ['COVID-19 Deaths', 'Pneumonia Deaths', 'Influenza Deaths', 'Total Deaths']:
-    df[var + '_log'] = np.log(df[var].where(df[var] > 0, 1))  # Replace 0 with 1 for log calculation
-
-
-
-
 
 
 # Define drowpdown options for disease
+
 disease_options = {
     "COVID-19 Deaths": "COVID-19 Deaths",
     "Pneumonia Deaths": "Pneumonia Deaths",
     "Influenza Deaths": "Influenza Deaths",
-    "Total Deaths": "Total Deaths",
-    'COVID-19 Deaths_log': "COVID-19 Deaths_log", 
-    'Pneumonia Deaths_log':"Pneumonia Deaths_log", 
-    'Influenza Deaths_log': "Influenza Deaths_log",
-    'Total Deaths_log': "Total Deaths_log"
+    "Total Deaths": "Total Deaths"
 }
-
 
 # Define dropdown options for states
 state_options = [{'label': state, 'value': state} for state in df["State"].unique()]
@@ -56,10 +49,11 @@ week_options = [{'label': week, 'value': week} for week in df["End Date"].unique
 # Define dropdown options for year
 year_options = [{'label': year, 'value': year} for year in df["Year"].unique()]
 
+
 app = dash.Dash(__name__)
 server = app.server
 app.layout = html.Div([
-    html.H1("Disease Death Count Dashboard", style={'textAlign': 'center'}),
+    html.H1("Disease Death Rate Dashboard", style={'textAlign': 'center'}),
     # Dropdown for Time-Series Graph
     html.Div([
         html.H3("Time-Series Graph"),
@@ -67,31 +61,21 @@ app.layout = html.Div([
         dcc.Dropdown(id='time-disease-dropdown', options=disease_options, value="COVID-19 Deaths", clearable=False),
 
         html.Label("Select State:"),
-        dcc.Dropdown(id='time-state-dropdown', options=state_options, value="Alabama", clearable=False),
+        dcc.Dropdown(id='time-state-dropdown', options=state_options, value="California", clearable=False),
 
         html.Button("Update Graph", id="update-button", n_clicks=0),
         
         dcc.Graph(id='time-series-chart')
     ], style={'border': '1px solid black', 'padding': '10px', 'margin': '10px'}),
 
-    # Dropdown and Slider for Box_Violin Graph
+    # Dropdown for Box_Violin Graph
     html.Div([
         html.H3("Box_Violin Plot"),
         html.Label("Select Disease:"),
         dcc.Dropdown(id='box-disease-dropdown', options=disease_options, value="Total Deaths", clearable=False),
 
         html.Label("Select State:"),
-        dcc.Dropdown(id='box-state-dropdown', options=state_options, value="United States", clearable=False),
-
-        html.Label("Filter Death Range:"),
-        dcc.RangeSlider(
-                        id='box-death-slider',
-                        min=0,     
-                        max=df["COVID-19 Deaths"].max(),
-                        step=50000,  
-                        marks={i: f"{i//1000}k" for i in range(0, int(df["COVID-19 Deaths"].max()) + 1, 50000)},  
-                        value=[0, df["COVID-19 Deaths"].max()]  # Default range from 0 to max
-        ),
+        dcc.Dropdown(id='box-state-dropdown', options=state_options, value="California", clearable=False),
 
         html.Button("Update Graph", id="update-button2", n_clicks=0),
         
@@ -104,7 +88,7 @@ app.layout = html.Div([
     html.Div([
         html.H3("Scatterplot matrix"),
         html.Label("Select Year:"),
-        dcc.Dropdown(id='scatter-year-dropdown', options=year_options, value="2020", clearable=False),
+        dcc.Dropdown(id='scatter-year-dropdown', options=year_options, value=2020, clearable=False),
 
         html.Label("Select State:"),
         dcc.Dropdown(id='scatter-state-dropdown', options=state_options, value="United States", clearable=False),
@@ -128,7 +112,7 @@ app.layout = html.Div([
   
 
     # Navigation Links
-    dcc.Link("View Graphs in New Tab", href="/Disease Death RateDashboard", target="_blank"),
+    dcc.Link("View Graphs in New Tab", href="/Disease Death RateDashboard", target="_blank")
 
 ])
 
@@ -176,29 +160,24 @@ def update_time_series(n_clicks, selected_disease, selected_state):
     time_fig.update_yaxes(range=[y_min, y_max])
 
     return time_fig
+
 # Set up input parameters for box-violin plot
 @app.callback(
     dd.Output('box-violin-plot', 'figure'),
     [dd.Input('update-button2', 'n_clicks')], 
     [dd.State('box-disease-dropdown', 'value'),
-    dd.State('box-state-dropdown', 'value'),
-    dd.State('box-death-slider', 'value')]
+    dd.State('box-state-dropdown', 'value')
+    ]
 )
-def box_violin(n_clicks, selected_disease, selected_state, death_range):
+def box_violin(n_clicks, selected_disease, selected_state):
     if n_clicks==0:
          return dash.no_update 
 
-    if not isinstance(death_range, (list, tuple)) or len(death_range) != 2:
-        return dash.no_update 
-
-    min_death, max_death = death_range
 
 
     df_filtered = df.dropna(subset=[selected_disease])
 
-    filtered_df = df_filtered[(df_filtered['State'] == selected_state) & 
-                              (df_filtered[selected_disease] >= min_death) & 
-                              (df_filtered[selected_disease] <= max_death)].copy()
+    filtered_df = df_filtered[(df_filtered['State'] == selected_state)].copy()
 
     
     if filtered_df.empty:
@@ -210,6 +189,7 @@ def box_violin(n_clicks, selected_disease, selected_state, death_range):
                                title=f"Violin Plot of {selected_disease} in {selected_state}")
 
     return box_violin_fig
+
 
 # Set up Input parameters for scatter-matrix
 @app.callback(
@@ -232,7 +212,7 @@ def scatter(n_clicks, selected_states, selected_years):
     diseases_log =['COVID-19 Deaths_log', 'Pneumonia Deaths_log', 'Influenza Deaths_log',
        'Total Deaths_log']
     
-    scatter_fig = px.scatter_matrix(filtered_df, dimensions=diseases_log,
+    scatter_fig = px.scatter_matrix(filtered_df, dimensions=diseases,
                             opacity=0.7,
                             labels={"value": "Deaths"},
                             title= f"Scatterplot Matrix of Log Transformation of Deaths Count in {selected_states} in Year {selected_years}")
@@ -241,6 +221,7 @@ def scatter(n_clicks, selected_states, selected_years):
     scatter_fig.update_layout(height=800)
 
     return (scatter_fig,)
+
 
 # Set up Input parameters for heatmap
 @app.callback(
