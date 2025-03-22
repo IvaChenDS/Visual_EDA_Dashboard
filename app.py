@@ -268,8 +268,8 @@ def scatter(n_clicks, selected_states, selected_years):
     if len(filtered_df) <=5:
         return px.scatter_matrix(title="No enough data available")
 
-    diseases_log =['COVID-19 Deaths_log', 'Pneumonia Deaths_log', 'Influenza Deaths_log',
-       'Total Deaths_log']
+    diseases =['COVID-19 Deaths', 'Pneumonia Deaths', 'Influenza Deaths',
+       'Total Deaths']
     
     scatter_fig = px.scatter_matrix(filtered_df, dimensions=diseases,
                             opacity=0.7,
