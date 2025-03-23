@@ -99,5 +99,5 @@ Time Series Plot
 Violin & Box Plots
 Scatterplot Matrix
 Heatmap
-U.S Map
+U.S. Map
 
