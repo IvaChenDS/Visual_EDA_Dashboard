@@ -38,6 +38,8 @@ Follow these steps to run the dashboard locally:
 
 ### 1.1 Clone or Download the Repository if you use git
 
+On your terminal
+
 ```bash
 git clone <your-repo-url>
 cd <your-project-folder>
@@ -55,7 +57,7 @@ Select "Download ZIP".
 Once downloaded, locate the ZIP file on your computer.
 
 Extract the ZIP 
-Open the extracted folder and proceed with the setup instructions.
+Open the extracted folder.
 
 
 
@@ -72,7 +74,10 @@ Any packages you install (like Dash, Pandas, etc.) go only into this environment
 It keeps your project clean and prevents version conflicts between different projects.
 
 ### 3.Install Dependencies
+On your ternimal
+
 ```bash
+cd <path of the extracted folder>
 pip install -r requirements.txt
 ```
 
@@ -81,7 +86,7 @@ pip install -r requirements.txt
 python app.py
 ```
 If successful, the terminal will show something like:
-**Dash Running on http://127.0.0.1:8052/**
+**Dash is running on http://127.0.0.1:8052/**
 
 ### 5. Open the Dashboard
 Go to your browser and copy and post the link after Dash Running on:
@@ -94,4 +99,5 @@ Time Series Plot
 Violin & Box Plots
 Scatterplot Matrix
 Heatmap
+U.S. Map
 
