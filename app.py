@@ -277,7 +277,7 @@ def scatter(n_clicks, selected_states, selected_years):
                             title= f"Scatterplot Matrix of Deaths Count in {selected_states} in Year {selected_years}")
                             
 
-    scatter_fig.update_layout(height=800)
+    scatter_fig.update_layout(height=600)
 
     return (scatter_fig,)
 
@@ -303,7 +303,7 @@ def heatmap(n_clicks, selected_disease):
                             title=f"Heatmap of {selected_disease} by Year")
 
 
-    heatmap_fig.update_layout(height=800)
+    heatmap_fig.update_layout(height=600)
 
     return heatmap_fig
 
@@ -351,7 +351,11 @@ def update_choropleth(n_clicks, selected_year):
         hover_data={"Death Rate": ':.2%', "Population": True, "Total Deaths": True},
         title=f"Total Death Rate by State in {selected_year}"
     )
-    map.update_geos(fitbounds="locations", visible=False)
+    map.update_geos(
+    visible=False,
+    projection_scale=0.8,  
+    center={"lat": 37.8, "lon": -96}  )
+
     map.update_layout(height=600)
 
     return map
